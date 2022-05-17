@@ -1,0 +1,101 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key", "@shareable"])
+
+type Query {
+  paginatedRoles(page: Int, perPage: Int, nameFilter: String): PaginatedRoles
+  paginatedOperators(page: Int, perPage: Int): PaginatedOperators
+  permissionsInRole(roleId: String): [Permission]
+  permissions: [Permission]
+  getTrackingData: TrackingData
+  userMetadata(userId: String): UserMetadata
+}
+
+type Mutation {
+  createRole(role: RoleInput): Role
+  addPermissionsInRole(roleId: String, permissions: [PermissionInput]): [Permission]
+  createOperatorInOrganization(operator: OperatorInput): Operator
+  updateOperator(operator: OperatorInput): Operator
+  updateUserMetadata(userId: String, userMetadata: UserMetadataInput): UserMetadata
+  removePermissionsFromRole(roleId: String, permissions: [PermissionInput]): [Permission]
+  updateRole(role: RoleInput): Role
+  deleteRole(id: String): String
+  deleteOperator(id: String): String
+  registerEvent(dashboardEvent: DashboardEvent): Boolean
+}
+
+input OperatorInput {
+  # Email of the operator
+  email: String!
+  # Optional name of the operator
+  name: String
+  # List of role ids
+  roles: [String]
+  id: String
+  userMetadata: UserMetadataInput
+}
+
+input UserMetadataInput {
+  locale: String
+}
+
+type Permission {
+  permissionName: String
+  description: String
+  resourceServerName: String
+  resourceServerIdentifier: String
+}
+
+type PaginatedRoles {
+  roles: [Role]
+  start: Int
+  limit: Int
+  total: Int
+}
+
+type Role {
+  id: String
+  name: String
+  description: String
+  permissions: [Permission]
+}
+
+type UserMetadata {
+  locale: String
+}
+
+type PaginatedOperators {
+  operators: [Operator]
+  start: Int
+  limit: Int
+  total: Int
+}
+
+type Operator {
+  id: String
+  email: String
+  picture: String
+  name: String
+  roles: [Role]
+  userMetadata: UserMetadata
+}
+
+input RoleInput {
+  id: String
+  name: String
+  description: String
+  permissions: [PermissionInput]
+}
+
+input PermissionInput {
+  permissionName: String
+}
+
+input DashboardEvent {
+  name: String
+}
+
+type TrackingData {
+  id: String
+  clientName: String
+  userId: String
+  roles: [Role]
+}

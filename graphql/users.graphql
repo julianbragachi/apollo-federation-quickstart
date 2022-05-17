@@ -1,0 +1,148 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key", "@shareable"])
+
+type Query {
+  userDetail(userId: String!): UserDetailResponse!
+  searchUsers(
+    filters: SearchUsersFilters
+    page: Int
+    perPage: Int
+    sort: [String]
+  ): SearchUsersResponse!
+}
+
+type Mutation {
+  createUser(userInput: UserInput): UserResponse
+  updateUser(user: UserUpdateInput): UserResponse
+  updateUserStatus(user: UserStatusUpdateInput): UserResponse
+}
+
+type UserDetailResponse {
+  user: User
+  cards: [Card]
+}
+
+type SearchUsersResponse {
+  users: [User]
+  meta: Meta
+  start: Int
+  limit: Int
+  total: Int
+}
+
+type UserResponse {
+  user: User
+}
+
+type Meta {
+  pagination: Pagination
+}
+
+type Pagination {
+  totalPages: Int
+  currentPages: Int
+}
+
+type Address {
+  floor: String
+  streetName: String
+  streetNumber: String
+  apartment: String
+  city: String
+  region: String
+  zipCode: String
+  neighborhood: String
+  country: String
+  additionalInfo: String
+}
+
+type User {
+  id: String
+  name: String
+  surname: String
+  identificationType: String
+  identificationValue: String
+  birthdate: String
+  gender: String
+  email: String
+  phone: String
+  status: String
+  legalAddress: Address
+  taxIdentificationType: String
+  taxIdentificationValue: String
+}
+
+input UserInput {
+  name: String!
+  surname: String!
+  identificationType: String
+  identificationValue: String
+  birthdate: String
+  gender: String
+  email: String
+  phone: String
+  status: String
+  legalAddress: AddressInput!
+}
+
+input UserUpdateInput {
+  id: String!
+  name: String
+  surname: String
+  identificationType: String
+  identificationValue: String
+  birthdate: String
+  gender: String
+  phone: String
+  legalAddress: AddressUpdateInput
+}
+
+input UserStatusUpdateInput {
+  id: String!
+  status: String
+  statusReason: String
+}
+
+input AddressInput {
+  floor: String
+  streetName: String
+  streetNumber: String
+  apartment: String
+  city: String
+  region: String
+  zipCode: String
+  neighborhood: String
+  country: String
+  additionalInfo: String
+}
+
+input AddressUpdateInput {
+  floor: String
+  streetName: String
+  streetNumber: String
+  apartment: String
+  city: String
+  region: String
+  zipCode: String
+  neighborhood: String
+  country: String
+  additionalInfo: String
+}
+
+input SearchUsersFilters {
+  name: String
+  surname: String
+  identificationValue: String
+  identificationType: [String]
+  email: String
+  phone: String
+  status: String
+  userId: String
+}
+
+type Card {
+  id: String
+  status: String
+  startDate: String
+  expirationDate: String
+  lastFour: String
+}

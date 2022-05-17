@@ -4,6 +4,7 @@ schema
   @link(url: "https://specs.apollo.dev/join/v0.2", for: EXECUTION)
 {
   query: Query
+  mutation: Mutation
 }
 
 directive @join__field(graph: join__Graph!, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
@@ -16,17 +17,72 @@ directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boole
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
-type Bar
+type Address
   @join__type(graph: USERS)
 {
-  user: User @join__field(graph: USERS, provides: "id")
+  floor: String
+  streetName: String
+  streetNumber: String
+  apartment: String
+  city: String
+  region: String
+  zipCode: String
+  neighborhood: String
+  country: String
+  additionalInfo: String
+}
+
+input AddressInput
+  @join__type(graph: USERS)
+{
+  floor: String
+  streetName: String
+  streetNumber: String
+  apartment: String
+  city: String
+  region: String
+  zipCode: String
+  neighborhood: String
+  country: String
+  additionalInfo: String
+}
+
+input AddressUpdateInput
+  @join__type(graph: USERS)
+{
+  floor: String
+  streetName: String
+  streetNumber: String
+  apartment: String
+  city: String
+  region: String
+  zipCode: String
+  neighborhood: String
+  country: String
+  additionalInfo: String
+}
+
+type Card
+  @join__type(graph: USERS)
+{
+  id: String
+  status: String
+  startDate: String
+  expirationDate: String
+  lastFour: String
+}
+
+input DashboardEvent
+  @join__type(graph: IAM)
+{
+  name: String
 }
 
 scalar join__FieldSet
 
 enum join__Graph {
-  PRODUCTS @join__graph(name: "products", url: "http://localhost:4001/graphql")
-  USERS @join__graph(name: "users", url: "http://localhost:4000/graphql")
+  IAM @join__graph(name: "iam", url: "http://localhost:4001/graphql")
+  USERS @join__graph(name: "users", url: "http://localhost:4001/graphql")
 }
 
 scalar link__Import
@@ -43,17 +99,232 @@ enum link__Purpose {
   EXECUTION
 }
 
-type Query
-  @join__type(graph: PRODUCTS)
+type Meta
   @join__type(graph: USERS)
 {
-  foo: Bar @join__field(graph: USERS)
+  pagination: Pagination
+}
+
+type Mutation
+  @join__type(graph: IAM)
+  @join__type(graph: USERS)
+{
+  createRole(role: RoleInput): Role @join__field(graph: IAM)
+  addPermissionsInRole(roleId: String, permissions: [PermissionInput]): [Permission] @join__field(graph: IAM)
+  createOperatorInOrganization(operator: OperatorInput): Operator @join__field(graph: IAM)
+  updateOperator(operator: OperatorInput): Operator @join__field(graph: IAM)
+  updateUserMetadata(userId: String, userMetadata: UserMetadataInput): UserMetadata @join__field(graph: IAM)
+  removePermissionsFromRole(roleId: String, permissions: [PermissionInput]): [Permission] @join__field(graph: IAM)
+  updateRole(role: RoleInput): Role @join__field(graph: IAM)
+  deleteRole(id: String): String @join__field(graph: IAM)
+  deleteOperator(id: String): String @join__field(graph: IAM)
+  registerEvent(dashboardEvent: DashboardEvent): Boolean @join__field(graph: IAM)
+  createUser(userInput: UserInput): UserResponse @join__field(graph: USERS)
+  updateUser(user: UserUpdateInput): UserResponse @join__field(graph: USERS)
+  updateUserStatus(user: UserStatusUpdateInput): UserResponse @join__field(graph: USERS)
+}
+
+type Operator
+  @join__type(graph: IAM)
+{
+  id: String
+  email: String
+  picture: String
+  name: String
+  roles: [Role]
+  userMetadata: UserMetadata
+}
+
+input OperatorInput
+  @join__type(graph: IAM)
+{
+  email: String!
+  name: String
+  roles: [String]
+  id: String
+  userMetadata: UserMetadataInput
+}
+
+type PaginatedOperators
+  @join__type(graph: IAM)
+{
+  operators: [Operator]
+  start: Int
+  limit: Int
+  total: Int
+}
+
+type PaginatedRoles
+  @join__type(graph: IAM)
+{
+  roles: [Role]
+  start: Int
+  limit: Int
+  total: Int
+}
+
+type Pagination
+  @join__type(graph: USERS)
+{
+  totalPages: Int
+  currentPages: Int
+}
+
+type Permission
+  @join__type(graph: IAM)
+{
+  permissionName: String
+  description: String
+  resourceServerName: String
+  resourceServerIdentifier: String
+}
+
+input PermissionInput
+  @join__type(graph: IAM)
+{
+  permissionName: String
+}
+
+type Query
+  @join__type(graph: IAM)
+  @join__type(graph: USERS)
+{
+  paginatedRoles(page: Int, perPage: Int, nameFilter: String): PaginatedRoles @join__field(graph: IAM)
+  paginatedOperators(page: Int, perPage: Int): PaginatedOperators @join__field(graph: IAM)
+  permissionsInRole(roleId: String): [Permission] @join__field(graph: IAM)
+  permissions: [Permission] @join__field(graph: IAM)
+  getTrackingData: TrackingData @join__field(graph: IAM)
+  userMetadata(userId: String): UserMetadata @join__field(graph: IAM)
+  userDetail(userId: String!): UserDetailResponse! @join__field(graph: USERS)
+  searchUsers(filters: SearchUsersFilters, page: Int, perPage: Int, sort: [String]): SearchUsersResponse! @join__field(graph: USERS)
+}
+
+type Role
+  @join__type(graph: IAM)
+{
+  id: String
+  name: String
+  description: String
+  permissions: [Permission]
+}
+
+input RoleInput
+  @join__type(graph: IAM)
+{
+  id: String
+  name: String
+  description: String
+  permissions: [PermissionInput]
+}
+
+input SearchUsersFilters
+  @join__type(graph: USERS)
+{
+  name: String
+  surname: String
+  identificationValue: String
+  identificationType: [String]
+  email: String
+  phone: String
+  status: String
+  userId: String
+}
+
+type SearchUsersResponse
+  @join__type(graph: USERS)
+{
+  users: [User]
+  meta: Meta
+  start: Int
+  limit: Int
+  total: Int
+}
+
+type TrackingData
+  @join__type(graph: IAM)
+{
+  id: String
+  clientName: String
+  userId: String
+  roles: [Role]
 }
 
 type User
-  @join__type(graph: PRODUCTS, key: "email")
-  @join__type(graph: USERS, key: "email")
+  @join__type(graph: USERS)
 {
-  email: ID
-  id: String @join__field(graph: PRODUCTS) @join__field(graph: USERS, external: true)
+  id: String
+  name: String
+  surname: String
+  identificationType: String
+  identificationValue: String
+  birthdate: String
+  gender: String
+  email: String
+  phone: String
+  status: String
+  legalAddress: Address
+  taxIdentificationType: String
+  taxIdentificationValue: String
+}
+
+type UserDetailResponse
+  @join__type(graph: USERS)
+{
+  user: User
+  cards: [Card]
+}
+
+input UserInput
+  @join__type(graph: USERS)
+{
+  name: String!
+  surname: String!
+  identificationType: String
+  identificationValue: String
+  birthdate: String
+  gender: String
+  email: String
+  phone: String
+  status: String
+  legalAddress: AddressInput!
+}
+
+type UserMetadata
+  @join__type(graph: IAM)
+{
+  locale: String
+}
+
+input UserMetadataInput
+  @join__type(graph: IAM)
+{
+  locale: String
+}
+
+type UserResponse
+  @join__type(graph: USERS)
+{
+  user: User
+}
+
+input UserStatusUpdateInput
+  @join__type(graph: USERS)
+{
+  id: String!
+  status: String
+  statusReason: String
+}
+
+input UserUpdateInput
+  @join__type(graph: USERS)
+{
+  id: String!
+  name: String
+  surname: String
+  identificationType: String
+  identificationValue: String
+  birthdate: String
+  gender: String
+  phone: String
+  legalAddress: AddressUpdateInput
 }
